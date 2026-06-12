@@ -4,7 +4,7 @@ on:
   schedule:
     # Every 15 minutes. GitHub may delay scheduled runs by a few minutes,
     # which is fine since we only post final scores.
-    - cron: "*/15 * * * *"
+    - cron: "5,20,35,50 * * * *"
   workflow_dispatch: {}  # lets you trigger a run manually from the Actions tab
 
 permissions:
