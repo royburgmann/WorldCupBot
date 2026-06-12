@@ -1,0 +1,43 @@
+name: World Cup Score Bot
+
+on:
+  schedule:
+    # Every 15 minutes. GitHub may delay scheduled runs by a few minutes,
+    # which is fine since we only post final scores.
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}  # lets you trigger a run manually from the Actions tab
+
+permissions:
+  contents: write  # needed to commit posted_matches.json back to the repo
+
+concurrency:
+  group: worldcup-bot
+  cancel-in-progress: false
+
+jobs:
+  post-scores:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run bot
+        env:
+          WEBEX_BOT_TOKEN: ${{ secrets.WEBEX_BOT_TOKEN }}
+          WEBEX_ROOM_ID: ${{ secrets.WEBEX_ROOM_ID }}
+          FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
+        run: python worldcup_bot.py
+
+      - name: Commit state file
+        run: |
+          git config user.name "worldcup-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add posted_matches.json
+          git diff --cached --quiet || git commit -m "Update posted matches"
+          git push
